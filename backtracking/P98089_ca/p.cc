@@ -1,6 +1,3 @@
-//FALLA LA EFICIENCIA!! PRIVADO EE
-
-
 #include <iostream>
 #include <vector>
 
@@ -17,7 +14,7 @@ void ubicar(const vector<string>& persona, const vector<vector<int>>& manias, ve
             f = ubicacion;
         }   
     }
-    else {
+    else if (t < min){
         for (int i = 1; i < persona.size(); ++i)
         {
             if (!vb[i]){
