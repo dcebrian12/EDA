@@ -1,48 +1,83 @@
 #include <iostream>
 #include <vector>
-
 using namespace std;
 
-// Funció que comprova si cap dels prefixos d'un nombre donat és múltiple de cap divisor prohibit.
-bool es_valid(const vector<int>& nombre, const vector<int>& divisors) {
-    int prefix = 0;
-    for (int digit : nombre) {
-        prefix = prefix * 10 + digit;
-        for (int divisor : divisors) {
-            if (prefix % divisor == 0) {
-                return false;
+
+int convierte_num(const vector<int>& v){
+    int n = 0;
+    for (int i : v){
+        n = n*10 + i;
+    }
+    return n;
+}
+
+int cifras(int n){
+    int c = 0;
+    while (n != 0){
+        ++c;
+        n/=10;
+    }
+    return c;
+}
+
+void print(const vector<int> &v)
+{
+    int n = convierte_num(v);
+    if (cifras(n) == v.size())
+        cout << convierte_num(v) << endl;
+
+}
+
+bool forbidden(int n, const vector<int> &p)
+{
+
+    while (n != 0)
+    {
+        for (int i : p)
+        {
+            if (n % i == 0)
+                return true;
+        }
+        n /= 10;
+    }
+
+    return false;
+}
+
+void nums(vector<int> &v,const vector<int> &p, int n)
+{
+    if (v.size() == n)
+        print(v);
+    else
+    {
+        for (int i = 0; i <= 9; ++i)
+        {
+            v.push_back(i);
+            int num = convierte_num(v);
+            if (!forbidden(num, p))
+            {
+                nums(v, p, n);
+                
             }
+            v.pop_back();
         }
-    }
-    return true;
-}
-
-// Funció recursiva per generar nombres de n dígits utilitzant backtracking.
-void genera_nombres(vector<int>& nombre, int n, const vector<int>& divisors) {
-    if (nombre.size() == n) {
-        for (int digit : nombre) {
-            cout << digit;
-        }
-        cout << endl;
-        return;
-    }
-
-    for (int digit = 1; digit <= 9; ++digit) { // Els dígits han de ser de 1 a 9
-        nombre.push_back(digit);
-        if (es_valid(nombre, divisors)) {
-            genera_nombres(nombre, n, divisors);
-        }
-        nombre.pop_back();
     }
 }
 
-int main() {
-    int n = 2; // Nombre de dígits
-    vector<int> divisors = {3}; // Divisors prohibits
+int main()
+{
+    int n, m;
+    while (cin >> n >> m)
+    {
+        vector<int> prohibidas(m);
+        vector<int> v;
+        for (int i = 0; i < m; ++i)
+        {
+            cin >> prohibidas[i];
+        }
 
-    vector<int> nombre; // Vector per emmagatzemar el nombre actual
+        nums(v, prohibidas, n);
 
-    genera_nombres(nombre, n, divisors);
-
-    return 0;
+        cout << "----------" << endl;
+    }
 }
