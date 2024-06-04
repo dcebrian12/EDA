@@ -4,71 +4,69 @@
 
 using namespace std;
 
-typedef vector<vector<char>> Tablero;
+typedef vector<vector<char>> Graph;
+typedef vector<vector<int>> MI;
+typedef vector<vector<bool>> MB;
 typedef pair<int, int> Pos;
 const int DX[8] = {1, 0, -1, 0, 1, 1, -1, -1};
 const int DY[8] = {0, 1, 0, -1, 1, -1, 1, -1};
+const int INF = 2e9;
 
-bool pos_ok(const Tablero &t, int f, int c, int x, int y)
+bool pos_ok(const Graph &g, int f, int c, int i, int j)
 {
-    return x >= 0 and y >= 0 and x < f and y < c and t[x][y] != 'X';
+    return i >= 0 and j >= 0 and i < f and j < c and g[i][j] != 'X';
 }
 
-bool bfs(const Tablero &t, Pos &origen, vector<vector<Pos>> &v)
+// si encuentra un pages devuelve la posicion donde se encuentra
+Pos bfs(const Graph &g, Pos origen, vector<vector<Pos>> &prev)
 {
-    int f = t.size(), c = t[0].size();
-    // vector<vector<int>> distancia(f, vector<int>(c, INF));
-    vector<vector<bool>> vis(f, vector<bool>(c, false));
+    int f = g.size(), c = g[0].size();
+    MB vis(f, vector<bool>(c, false));
+    MI dist(f, vector<int>(c, INF));
+    int x = origen.first, y = origen.second;
+    dist[x][y] = 0;
     queue<Pos> q;
-    q.push(origen);
-    // distancia[x][y] = 0;
-    int x = origen.first;
-    int y = origen.second;
-    v[x][y] = {-1, -1};
+    q.push({x, y});
 
     while (!q.empty())
     {
-        Pos p = q.front();
+        x = q.front().first;
+        y = q.front().second;
         q.pop();
-        x = p.first;
-        y = p.second;
-        if (t[x][y] == 'F')
-        {
-            origen.first = x;
-            origen.second = y;
-            return true;
-        }
+
+        if (g[x][y] == 'F')
+            return {x, y};
 
         if (!vis[x][y])
         {
             vis[x][y] = true;
-            Pos nueva;
             for (int i = 0; i < 8; ++i)
             {
-                nueva.first = x + DX[i];
-                nueva.second = y + DY[i];
-                if (pos_ok(t, f, c, nueva.first, nueva.second))
+                int nx = x + DX[i];
+                int ny = y + DY[i];
+                if (pos_ok(g, f, c, nx, ny) and dist[nx][ny] == INF)
                 {
-                    q.push(nueva);
-                    v[nueva.first][nueva.second] = p;
+                    dist[nx][ny] = dist[x][y] + 1;
+                    prev[nx][ny] = {x, y};
+                    q.push({nx, ny});
                 }
             }
         }
     }
-    return false;
+
+    return {-1, -1};
 }
 
-vector<Pos> find_path(const vector<vector<Pos>> &p, Pos origen)
+vector<Pos> find_path(const vector<vector<Pos>> prev, Pos origen, Pos destino)
 {
     vector<Pos> v;
-    int x = origen.first, y = origen.second;
-    while (x != -1 and y != -1)
+    while (origen != destino)
     {
-        v.push_back({x, y});
-        origen = p[x][y];
-        x = origen.first;
-        y = origen.second;
+        int x = origen.first, y = origen.second;
+        v.push_back(origen);
+        origen = prev[x][y];
     }
+    v.push_back(destino);
     return v;
 }
 
@@ -77,35 +75,30 @@ int main()
     int f, c;
     while (cin >> f >> c)
     {
-        Pos p;
-        Tablero t(f, vector<char>(c, '.'));
+        Pos origen;
+        Graph g(f, vector<char>(c));
         for (int i = 0; i < f; ++i)
         {
             for (int j = 0; j < c; ++j)
             {
-                char m;
-                cin >> m;
-                t[i][j] = m;
-                if (t[i][j] == 'K')
-                {
-                    p.first = i;
-                    p.second = j;
-                }
+                cin >> g[i][j];
+                if (g[i][j] == 'K')
+                    origen = {i, j};
             }
         }
 
-
-        vector<vector<Pos>> v(f, vector<Pos>(c, {-1, -1}));
-        if (not bfs(t, p, v))
-            cout << "0" << endl;
+        vector<vector<Pos>> prev(f, vector<Pos>(c, {-1, -1}));
+        Pos destino = bfs(g, origen, prev);
+        if (destino.first == -1)
+            cout << '0' << endl;
         else
         {
-            vector<Pos> path = find_path(v, p);
-            int n = path.size();
+            vector<Pos> v = find_path(prev, destino, origen);
+            int n = v.size();
             cout << n;
-            for (int i = 0; i < n - 1; ++i)
-                cout << "  " << path[i].first << " " << path[i].second;
-            cout << "  " << path[n - 1].first << " " << path[n - 1].second << endl;
+            for (int i = n - 1; i >= 0; --i)
+                cout << "  " << v[i].first << " " << v[i].second;
+            cout << endl;
         }
     }
 }
